@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>YouTube Downloader</title>
+        <style>
+            body { display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; font-family: Arial, sans-serif; }
+            .container { text-align: center; width: 300px; }
+            input[type="text"], input[type="password"] { width: 100%; padding: 8px; margin: 10px 0; }
+            button { width: 100%; padding: 10px; background-color: #4CAF50; color: white; border: none; cursor: pointer; }
+            button:hover { background-color: #45a049; }
+            button:disabled { background-color: #aaa; cursor: not-allowed; }
+            #error-message { color: red; margin-top: 10px; display: none; }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h2>YouTube Downloader</h2>
+            <form id="downloadForm">
+                <input type="text" name="url" placeholder="Enter YouTube URL" required>
+                <input type="password" name="key" placeholder="Access Key" required>
+                <button type="submit" id="downloadButton">Download</button>
+                <div id="error-message"></div>
+            </form>
+        </div>
+
+    <script>
+        const form = document.getElementById('downloadForm');
+        const downloadButton = document.getElementById('downloadButton');
+        const errorMessage = document.getElementById('error-message');
+
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();  // Prevent default form submission
+            errorMessage.style.display = 'none';  // Hide any previous error message
+            downloadButton.disabled = true;  // Disable the download button
+
+            try {
+                const formData = new FormData(form);
+                const jsonData = {
+                    url: formData.get('url'),
+                    key: formData.get('key')
+                };
+                const response = await fetch('/download', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(jsonData)
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log(data);
+                    // Redirect to the download URL
+                    window.location.href = data.url;
+                } else {
+                    const errorData = await response.json();
+                    errorMessage.textContent = errorData.error || "An error occurred during download.";
+                    errorMessage.style.display = 'block';
+                }
+            } catch (error) {
+                errorMessage.textContent = "Network error: Could not connect to the server.";
+                errorMessage.style.display = 'block';
+            } finally {
+                downloadButton.disabled = false;  // Re-enable the button after download or error
+            }
+        });
+        </script>
+    </body>
+</html>
+
